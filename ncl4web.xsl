@@ -39,7 +39,7 @@
 			</script-->
 			<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js">
 			</script>
-			<script src="ncl-complements.js">
+			<script src="http://www.midiacom.uff.br/~caleb/ncl4web/ncl-complements.js">
 			</script>
 			<script>
 				<xsl:if test="count(//transitionBase|//e:transitionBase)>0" >
@@ -206,7 +206,7 @@
 		</xsl:attribute>
 			<xsl:if test="$regiao/@zIndex != ''">
 				<xsl:attribute name="zIndex">
-					<xsl:value-of select="number($regiao/@zIndex)+100"/><xsl:text>;</xsl:text>
+					<xsl:value-of select="number($regiao/@zIndex)*1000"/><xsl:text>;</xsl:text>
 				</xsl:attribute>
 			</xsl:if>
 		<xsl:for-each select="$originalDoc//descriptor[@region=$regiao/@id]|$originalDoc//e:descriptor[@region=$regiao/@id]">
@@ -248,7 +248,7 @@
 		</div>
 		</xsl:template>
 	<xsl:template match="body|e:body">
-		<body style="height:98%; width:98%;">
+		<body style="height:100%; width:100%;overflow:hidden">
 			<xsl:if test="@id != ''">
 			<xsl:attribute name="id">
 				<xsl:value-of select="@id"></xsl:value-of>
@@ -778,7 +778,17 @@
 							</xsl:choose>
 					</xsl:when>
 					<xsl:otherwise>
-					 <xsl:value-of select="@role" /><xsl:text>('</xsl:text><xsl:value-of select="@component" /><xsl:text>'</xsl:text><xsl:if test="@interface != ''"><xsl:text>,'</xsl:text><xsl:value-of select="@interface" /><xsl:text>'</xsl:text></xsl:if><xsl:text>)</xsl:text>
+						<!--Tratando descriptor-->
+						<xsl:variable name="medialocalid" select="@component" />
+						<xsl:variable name="medialocal" select="//media[@id=$medialocalid]|//e:media[@id=$medialocalid]" />
+						<xsl:choose>
+							<xsl:when test="@descriptor != '' and @descriptor!=string($medialocal/@descriptor)">
+								trataDescriptorInLink('<xsl:value-of select="@component" />','<xsl:value-of select="@descriptor" />','<xsl:value-of select="@role" />','<xsl:value-of select="@interface" />');
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of select="@role" /><xsl:text>('</xsl:text><xsl:value-of select="@component" /><xsl:text>'</xsl:text><xsl:if test="@interface != ''"><xsl:text>,'</xsl:text><xsl:value-of select="@interface" /><xsl:text>'</xsl:text></xsl:if><xsl:text>)</xsl:text>	
+							</xsl:otherwise>
+						</xsl:choose>
 					</xsl:otherwise>
 					</xsl:choose>
 					</xsl:variable>
@@ -820,17 +830,10 @@
 					<xsl:variable name="execLine">
 						<xsl:choose>
 				 			<xsl:when test="$tempo != ''">
-				 				<!--Tratando descriptor-->
-								<xsl:if test="@descriptor != ''">
-									<xsl:text>setTimeout("tratataDescriptorInLink('</xsl:text><xsl:value-of select="@component" />','<xsl:value-of select="@descriptor" />','<xsl:value-of select="@role" />','<xsl:value-of select="@interface" /><xsl:text>')",</xsl:text><xsl:value-of select="$tempo"></xsl:value-of>*1000);
-								</xsl:if>
 				 				<!-- pego o tempo do delay-->
 				 				<xsl:text>setTimeout("</xsl:text><xsl:value-of select="$acaoJava"></xsl:value-of><xsl:text>",</xsl:text><xsl:value-of select="$tempo"></xsl:value-of>*1000);
 						 	 </xsl:when>
 							<xsl:otherwise>
-								<xsl:if test="@descriptor != ''">
-									tratataDescriptorInLink('<xsl:value-of select="@component" />','<xsl:value-of select="@descriptor" />','<xsl:value-of select="@role" />','<xsl:value-of select="@interface" />');
-								</xsl:if>
 								<xsl:value-of select="$acaoJava"></xsl:value-of>;
 							</xsl:otherwise>
 						</xsl:choose>
@@ -865,9 +868,20 @@
 	</xsl:template>
 	<xsl:template name="pegaOriginal">
 		<xsl:param name="component"/>
+		<xsl:param name="originalDoc" />
 		<xsl:choose>
 			<xsl:when test="count(//media[@id=$component][@instance='instSame']|//e:media[@id=$component][@instance='instSame'])>0">
 				<xsl:value-of select="//media[@id=$component][@instance='instSame']/@refer|//e:media[@id=$component][@instance='instSame']/@refer"></xsl:value-of>
+			</xsl:when>
+			<xsl:when test="$originalDoc!=''">
+				<xsl:choose>
+					<xsl:when test="count($originalDoc//media[@id=$component][@instance='instSame']|$originalDoc//e:media[@id=$component][@instance='instSame'])>0">
+						<xsl:value-of select="$originalDoc//media[@id=$component][@instance='instSame']/@refer|$originalDoc//e:media[@id=$component][@instance='instSame']/@refer"></xsl:value-of>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="$component"></xsl:value-of>
+					</xsl:otherwise>
+				</xsl:choose>
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:value-of select="$component"></xsl:value-of>
@@ -885,6 +899,7 @@
 			<xsl:variable name="no" >
 				<xsl:call-template name="pegaOriginal">
 					<xsl:with-param name="component" select="$elo/bind[@role=$assaement/@role]/@component|$elo/e:bind[@role=$assaement/@role]/@component" />
+					<xsl:with-param name="originalDoc" select="$originalDoc" />
 				</xsl:call-template>
 			</xsl:variable>
 			<xsl:choose>
@@ -1004,6 +1019,8 @@
   	  					<xsl:value-of select="$functionName"></xsl:value-of>(origin,target);
   	  				</xsl:otherwise>
   	  			</xsl:choose>
+					if(origin.stopImmediatePropagation)
+						origin.stopImmediatePropagation();
 					return true;
   				}
   			}
@@ -1071,6 +1088,7 @@
 						function  <xsl:value-of select="$functionName"></xsl:value-of>_<xsl:value-of select="$chave"></xsl:value-of>(origin,target){
 							if($('#<xsl:value-of select="$componentInterface" />').attr('state')!='occurring')
 								return false;
+								
 							if($('.started#'+origin.data.id).length>0)
 								if(<xsl:value-of select="$functionName"></xsl:value-of>({data:{id:origin.data.id}},origin.data.id))					origin.stopImmediatePropagation();
 						}
