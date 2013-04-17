@@ -1047,7 +1047,7 @@
 				$('#<xsl:value-of select="@component"></xsl:value-of> property[name=&quot;<xsl:value-of select="@interface" />&quot;]').bind('<xsl:value-of select="@role"></xsl:value-of>',{id:'<xsl:value-of select="@interface" />'},<xsl:value-of select="$functionName"></xsl:value-of>);
 				</xsl:when-->
 				<!-- trata demais nos -->
-				<xsl:when test="count(@interface) and count($nosDoContexto/property[@name=$interface]|$nosDoContexto/e:property[@name=$interface])=0">
+				<xsl:when test="count(@interface)>0 and count($nosDoContexto/property[@name=$interface]|$nosDoContexto/e:property[@name=$interface])>0">
 					<xsl:value-of select="@interface" />
 				</xsl:when>
 				<xsl:otherwise>
