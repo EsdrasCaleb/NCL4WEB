@@ -465,10 +465,6 @@
 				<xsl:with-param name="id" select="./@id"></xsl:with-param>	
 			</xsl:call-template>
 		</xsl:for-each>
-		<script>
-		<xsl:value-of select="$descId" />();
-		$('span.settings').bind('onEndAttribution',<xsl:value-of select="$descId" />);
-		</script>
 	</xsl:template>
 	<xsl:template name="fazNome">
 		<xsl:param name="id"></xsl:param>

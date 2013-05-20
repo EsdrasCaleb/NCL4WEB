@@ -674,6 +674,8 @@ function start(id,Inter,fromContext){
 		return
 	}*/
 	target = $('#'+id);
+	if(window[target.attr("descriptor")])
+		window[target.attr("descriptor")]()
 	if(target.attr('refer')&&target.attr('instance')=='instSame'){
 		target.attr('state','occurring');
 		start(target.attr('refer'));
